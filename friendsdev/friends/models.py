@@ -28,7 +28,7 @@ class Contact(models.Model):
 
 class Friendship(models.Model):
     """
-    A frienship is a bi-directional association between two users who
+    A friendship is a bi-directional association between two users who
     have both agreed to the association.
     """
     
