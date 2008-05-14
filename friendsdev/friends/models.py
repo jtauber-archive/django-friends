@@ -19,6 +19,16 @@ class Contact(models.Model):
         list_display = ('id', 'name', 'email', 'user', 'added')
 
 
+class FriendshipManager(models.Manager):
+
+    def friends_for_user(self, user):
+        friends = []
+        for friendship in self.filter(from_user=user):
+            friends.append({"friend": friendship.to_user, "friendship": friendship})
+        for friendship in self.filter(to_user=user):
+            friends.append({"friend": friendship.from_user, "friendship": friendship})
+        return friends
+
 
 class Friendship(models.Model):
     """
@@ -30,6 +40,8 @@ class Friendship(models.Model):
     from_user = models.ForeignKey(User, related_name="_unused_")
     # @@@ relationship types
     added = models.DateField(default=datetime.date.today)
+    
+    objects = FriendshipManager()
     
     class Meta:
         unique_together = (('to_user', 'from_user'),)
