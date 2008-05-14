@@ -13,13 +13,7 @@ class Contact(models.Model):
     user = models.ForeignKey(User)
     name = models.CharField(max_length=100)
     email = models.EmailField()
-    added = models.DateField()
-    
-    def save(self): 
-        if not self.id: 
-            self.added = datetime.date.today() 
-        super(Contact, self).save()
-    
+    added = models.DateField(default=datetime.date.today)
     
     class Admin:
         list_display = ('id', 'name', 'email', 'user', 'added')
@@ -35,12 +29,7 @@ class Friendship(models.Model):
     to_user = models.ForeignKey(User, related_name="friends")
     from_user = models.ForeignKey(User, related_name="_unused_")
     # @@@ relationship types
-    added = models.DateField()
-    
-    def save(self): 
-        if not self.id: 
-            self.added = datetime.date.today() 
-        super(Friendship, self).save()
+    added = models.DateField(default=datetime.date.today)
     
     class Meta:
         unique_together = (('to_user', 'from_user'),)
@@ -82,13 +71,8 @@ class FriendshipInvitation(models.Model):
     from_user = models.ForeignKey(User, related_name="invitations_from")
     to_user = models.ForeignKey(User, related_name="invitations_to")
     message = models.TextField()
-    sent = models.DateField()
+    sent = models.DateField(default=datetime.date.today)
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
-    
-    def save(self): 
-        if not self.id: 
-            self.added = datetime.date.today() 
-        super(FriendshipInvitation, self).save()
     
     class Admin:
         list_display = ('id', 'from_user', 'to_user', 'sent', 'status', )
