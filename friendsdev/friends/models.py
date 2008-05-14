@@ -44,7 +44,9 @@ class Friendship(models.Model):
     
     class Meta:
         unique_together = (('to_user', 'from_user'),)
-
+    
+    class Admin:
+        list_display = ('id', 'from_user', 'to_user', 'added', )
 
 
 INVITE_STATUS = (
@@ -87,3 +89,6 @@ class FriendshipInvitation(models.Model):
         if not self.id: 
             self.added = datetime.date.today() 
         super(FriendshipInvitation, self).save()
+    
+    class Admin:
+        list_display = ('id', 'from_user', 'to_user', 'sent', 'status', )
