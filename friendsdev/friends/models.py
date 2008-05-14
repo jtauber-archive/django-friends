@@ -11,7 +11,7 @@ class Contact(models.Model):
     """
     
     user = models.ForeignKey(User)
-    name = models.CharField(maxlength=100)
+    name = models.CharField(max_length=100)
     email = models.EmailField()
     added = models.DateField()
     
@@ -67,7 +67,7 @@ class JoinInvitation(models.Model):
     contact = models.ForeignKey(Contact)
     message = models.TextField()
     sent = models.DateField()
-    status = models.CharField(maxlength=1, choices=INVITE_STATUS)
+    status = models.CharField(max_length=1, choices=INVITE_STATUS)
 
 
 
@@ -81,7 +81,7 @@ class FriendshipInvitation(models.Model):
     to_user = models.ForeignKey(User, related_name="invitations_to")
     message = models.TextField()
     sent = models.DateField()
-    status = models.CharField(maxlength=1, choices=INVITE_STATUS)
+    status = models.CharField(max_length=1, choices=INVITE_STATUS)
     
     def save(self): 
         if not self.id: 
