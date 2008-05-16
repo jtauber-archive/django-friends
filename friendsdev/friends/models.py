@@ -28,6 +28,13 @@ class FriendshipManager(models.Manager):
         for friendship in self.filter(to_user=user):
             friends.append({"friend": friendship.from_user, "friendship": friendship})
         return friends
+    
+    def are_friends(self, user1, user2):
+        if self.filter(from_user=user1, to_user=user2).count() > 0:
+            return True
+        if self.filter(from_user=user2, to_user=user1).count() > 0:
+            return True
+        return False
 
 
 class Friendship(models.Model):
@@ -88,3 +95,10 @@ class FriendshipInvitation(models.Model):
     
     class Admin:
         list_display = ('id', 'from_user', 'to_user', 'sent', 'status', )
+    
+    def accept(self):
+        friendship = Friendship(to_user=self.to_user, from_user=self.from_user)
+        friendship.save()
+        self.status = 5
+        self.save()
+        # @@@ notification
