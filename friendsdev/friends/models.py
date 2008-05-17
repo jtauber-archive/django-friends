@@ -4,6 +4,11 @@ from django.db import models
 
 from django.contrib.auth.models import User
 
+try:
+    from notification import models as notification
+except ImportError:
+    notification = None
+
 class Contact(models.Model):
     """
     A contact is a person known by a user who may or may not themselves
@@ -101,4 +106,6 @@ class FriendshipInvitation(models.Model):
         friendship.save()
         self.status = 5
         self.save()
-        # @@@ notification
+        if notification:
+            notification.create(self.from_user, "friends_accept", "%s has accepted your friend request." % self.to_user)
+            notification.create(self.to_user, "friends_accept", "You accepted a %s's friend request." % self.from_user)
