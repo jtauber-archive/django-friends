@@ -108,4 +108,4 @@ class FriendshipInvitation(models.Model):
         self.save()
         if notification:
             notification.create(self.from_user, "friends_accept", "%s has accepted your friend request." % self.to_user)
-            notification.create(self.to_user, "friends_accept", "You accepted a %s's friend request." % self.from_user)
+            notification.create(self.to_user, "friends_accept", "You accepted %s's friend request." % self.from_user)
