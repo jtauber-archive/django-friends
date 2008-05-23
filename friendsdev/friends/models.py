@@ -62,6 +62,10 @@ class Friendship(models.Model):
         list_display = ('id', 'from_user', 'to_user', 'added', )
 
 
+def friend_set_for(user):
+    return set([obj["friend"] for obj in Friendship.objects.friends_for_user(user)])
+
+
 INVITE_STATUS = (
     ("1", "Created"),
     ("2", "Sent"),
@@ -108,4 +112,7 @@ class FriendshipInvitation(models.Model):
         self.save()
         if notification:
             notification.create(self.from_user, "friends_accept", "%s has accepted your friend request." % self.to_user)
-            notification.create(self.to_user, "friends_accept", "You accepted %s's friend request." % self.from_user)
+            notification.create(self.to_user, "friends_accept_sent", "You accepted %s's friend request." % self.from_user)
+            for user in friend_set_for(self.to_user) | friend_set_for(self.from_user):
+                if user != self.to_user and user != self.from_user:
+                    notification.create(user, "friends_otherconnect", "%s and %s are now friends" % (self.from_user, self.to_user))
