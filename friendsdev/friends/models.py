@@ -1,13 +1,24 @@
 import datetime
+from random import random
+import sha
 
 from django.db import models
 
 from django.contrib.auth.models import User
 
+# favour django-mailer but fall back to django.core.mail
+try:
+    from mailer import send_mail
+except ImportError:
+    from django.core.mail import send_mail
+
 try:
     from notification import models as notification
 except ImportError:
     notification = None
+
+from django.conf import settings
+
 
 class Contact(models.Model):
     """
@@ -16,7 +27,7 @@ class Contact(models.Model):
     """
     
     user = models.ForeignKey(User)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField()
     added = models.DateField(default=datetime.date.today)
     
@@ -75,6 +86,32 @@ INVITE_STATUS = (
     ("6", "Declined"),
 )
 
+class JoinInvitationManager(models.Manager):
+    
+    def send_invitation(self, from_user, to_email, message):
+        contact, created = Contact.objects.get_or_create(email=to_email, user=from_user)
+        salt = sha.new(str(random())).hexdigest()[:5]
+        confirmation_key = sha.new(salt + to_email).hexdigest()
+        
+        subject = "You have been invited to join Pinax" # @@@ template
+        email_message = """
+You have been invited by %(user)s to join Pinax.
+
+Pinax is both a platform for building social websites in Django as well
+as a demonstration of a site built on that platform.
+
+To accept this invitation, go to
+
+http://pinax.hotcluboffrance.com/invitations/accept/%(confirmation_key)s/
+
+If you have any questions about Pinax, don't hesitate to contact jtauber@jtauber.com
+""" % { # @@@ template
+            "user": from_user,
+            "confirmation_key": confirmation_key,
+        }
+        send_mail(subject, email_message, settings.DEFAULT_FROM_EMAIL, [to_email])
+        
+        return self.create(contact=contact, message=message, status="2", confirmation_key=confirmation_key)
 
 
 class JoinInvitation(models.Model):
@@ -85,9 +122,11 @@ class JoinInvitation(models.Model):
     
     contact = models.ForeignKey(Contact)
     message = models.TextField()
-    sent = models.DateField()
+    sent = models.DateField(default=datetime.date.today)
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
-
+    confirmation_key = models.CharField(max_length=40)
+    
+    objects = JoinInvitationManager()
 
 
 class FriendshipInvitation(models.Model):

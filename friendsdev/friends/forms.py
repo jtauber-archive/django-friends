@@ -2,7 +2,8 @@ from django import newforms as forms
 
 from django.contrib.auth.models import User
 
-from friends.models import FriendshipInvitation
+from emailconfirmation.models import EmailAddress
+from friends.models import *
 
 try:
     from notification import models as notification
@@ -16,6 +17,23 @@ class UserForm(forms.Form):
         super(UserForm, self).__init__(*args, **kwargs)
 
 
+class JoinRequestForm(forms.Form):
+    
+    email = forms.EmailField(label="Email", required=True, widget=forms.TextInput(attrs={'size':'30'}))
+    message = forms.CharField(label="Message", required=False, widget=forms.Textarea(attrs = {'cols': '30', 'rows': '5'}))
+    
+    def clean_email(self):
+        # @@@ this assuming email-confirmation is being used
+        if EmailAddress.objects.filter(email=self.cleaned_data["email"]).count():
+            raise forms.ValidationError(u"This email address belongs to an existing user.")
+        return self.cleaned_data["email"]
+    
+    def save(self, user):
+        join_request = JoinInvitation.objects.send_invitation(user, self.cleaned_data["email"], self.cleaned_data["message"])
+        user.message_set.create(message="Invitation to join sent to %s" % join_request.contact.email)
+        return join_request
+    
+    
 class InviteFriendForm(UserForm):
     
     to_user = forms.CharField(widget=forms.HiddenInput)
