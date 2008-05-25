@@ -136,7 +136,21 @@ class JoinInvitation(models.Model):
     confirmation_key = models.CharField(max_length=40)
     
     objects = JoinInvitationManager()
-
+    
+    def accept(self, new_user):
+        # mark invitation accepted
+        self.status = 5
+        self.save()
+        # auto-create friendship
+        friendship = Friendship(to_user=new_user, from_user=self.from_user)
+        friendship.save()
+        # notify
+        if notification:
+            notification.send([self.from_user], "join_accept", "%s has joined and is now a friend.", [new_user])
+            for user in friend_set_for(new_user) | friend_set_for(self.from_user):
+                if user != new_user and user != self.from_user:
+                    notification.send([user], "friends_otherconnect", "%s and %s are now friends", [self.from_user, new_user])
+    
     class Admin:
         list_display = ('id', 'from_user', 'contact', 'status')
 
