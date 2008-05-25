@@ -5,7 +5,9 @@ import sha
 from django.db import models
 
 from django.template.loader import render_to_string
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 
 # favour django-mailer but fall back to django.core.mail
 try:
@@ -96,12 +98,16 @@ class JoinInvitationManager(models.Manager):
         contact, created = Contact.objects.get_or_create(email=to_email, user=from_user)
         salt = sha.new(str(random())).hexdigest()[:5]
         confirmation_key = sha.new(salt + to_email).hexdigest()
+        accept_url = u"http://%s%s" % (
+            unicode(Site.objects.get_current()),
+            reverse("friends_accept_join", args=(confirmation_key,)),
+        )
         
         subject = render_to_string("friends/join_invite_subject.txt")
         email_message = render_to_string("friends/join_invite_message.txt", {
             "user": from_user,
             "message": message,
-            "confirmation_key": confirmation_key,
+            "accept_url": accept_url,
         })
         
         send_mail(subject, email_message, settings.DEFAULT_FROM_EMAIL, [to_email])        
