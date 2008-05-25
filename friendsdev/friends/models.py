@@ -31,6 +31,9 @@ class Contact(models.Model):
     email = models.EmailField()
     added = models.DateField(default=datetime.date.today)
     
+    def __unicode__(self):
+        return "%s (%s's contact)" % (self.email, self.user)
+    
     class Admin:
         list_display = ('id', 'name', 'email', 'user', 'added')
 
@@ -100,6 +103,10 @@ You have been invited by %(user)s to join Pinax.
 Pinax is both a platform for building social websites in Django as well
 as a demonstration of a site built on that platform.
 
+%(user)s said:
+
+%(message)s
+
 To accept this invitation, go to
 
 http://pinax.hotcluboffrance.com/invitations/accept/%(confirmation_key)s/
@@ -107,11 +114,12 @@ http://pinax.hotcluboffrance.com/invitations/accept/%(confirmation_key)s/
 If you have any questions about Pinax, don't hesitate to contact jtauber@jtauber.com
 """ % { # @@@ template
             "user": from_user,
+            "message": message,
             "confirmation_key": confirmation_key,
         }
         send_mail(subject, email_message, settings.DEFAULT_FROM_EMAIL, [to_email])
         
-        return self.create(contact=contact, message=message, status="2", confirmation_key=confirmation_key)
+        return self.create(from_user=from_user, contact=contact, message=message, status="2", confirmation_key=confirmation_key)
 
 
 class JoinInvitation(models.Model):
@@ -120,6 +128,7 @@ class JoinInvitation(models.Model):
     contact who is not known to be a user.
     """
     
+    from_user = models.ForeignKey(User, related_name="join_from")
     contact = models.ForeignKey(Contact)
     message = models.TextField()
     sent = models.DateField(default=datetime.date.today)
@@ -127,6 +136,9 @@ class JoinInvitation(models.Model):
     confirmation_key = models.CharField(max_length=40)
     
     objects = JoinInvitationManager()
+
+    class Admin:
+        list_display = ('id', 'from_user', 'contact', 'status')
 
 
 class FriendshipInvitation(models.Model):
