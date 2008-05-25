@@ -4,6 +4,7 @@ import sha
 
 from django.db import models
 
+from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 
 # favour django-mailer but fall back to django.core.mail
