@@ -96,29 +96,14 @@ class JoinInvitationManager(models.Manager):
         salt = sha.new(str(random())).hexdigest()[:5]
         confirmation_key = sha.new(salt + to_email).hexdigest()
         
-        subject = "You have been invited to join Pinax" # @@@ template
-        email_message = """
-You have been invited by %(user)s to join Pinax.
-
-Pinax is both a platform for building social websites in Django as well
-as a demonstration of a site built on that platform.
-
-%(user)s said:
-
-%(message)s
-
-To accept this invitation, go to
-
-http://pinax.hotcluboffrance.com/invitations/accept/%(confirmation_key)s/
-
-If you have any questions about Pinax, don't hesitate to contact jtauber@jtauber.com
-""" % { # @@@ template
+        subject = render_to_string("friends/join_invite_subject.txt")
+        email_message = render_to_string("friends/join_invite_message.txt", {
             "user": from_user,
             "message": message,
             "confirmation_key": confirmation_key,
-        }
-        send_mail(subject, email_message, settings.DEFAULT_FROM_EMAIL, [to_email])
+        })
         
+        send_mail(subject, email_message, settings.DEFAULT_FROM_EMAIL, [to_email])        
         return self.create(from_user=from_user, contact=contact, message=message, status="2", confirmation_key=confirmation_key)
 
 
