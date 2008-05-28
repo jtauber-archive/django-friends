@@ -1,5 +1,5 @@
 from django.dispatch import dispatcher
-from django.db.models import get_models, signals
+from django.db.models import signals
 
 try:
     from notification import models as notification
