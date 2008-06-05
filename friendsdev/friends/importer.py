@@ -16,8 +16,11 @@ def import_vcards(stream, user):
         try:
             name = card.fn.value
             email = card.email.value
-            Contact(user=user, name=name, email=email).save()
-            imported += 1
+            try:
+                Contact.objects.get(user=user, email=email)
+            except Contact.DoesNotExist:
+                Contact(user=user, name=name, email=email).save()
+                imported += 1
         except AttributeError:
             pass # missing value so don't add anything
     return imported, total
