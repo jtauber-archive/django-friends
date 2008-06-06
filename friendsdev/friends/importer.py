@@ -67,25 +67,28 @@ def import_google(authsub_token, user):
     
     Returns a tuple of (number imported, total number of entries).
     """
-
+    
     contacts_service = gdata.contacts.service.ContactsService()
     contacts_service.auth_token = authsub_token
     contacts_service.UpgradeToSessionToken()
-    emails = []
+    entries = []
     feed = contacts_service.GetContactsFeed()
-    emails.extend(sum([[email.address for email in entry.email] for entry in feed.entry], []))
+    entries.extend(feed.entry)
     next_link = feed.GetNextLink()
     while next_link:
         feed = contacts_service.GetContactsFeed(uri=next_link.href)
-        emails.extend(sum([[email.address for email in entry.email] for entry in feed.entry], []))
+        entries.extend(feed.entry)
         next_link = feed.GetNextLink()
     total = 0
     imported = 0
-    for email in emails: # @@@ how do we get name?
-        total += 1
-        try:
-            Contact.objects.get(user=user, email=email)
-        except Contact.DoesNotExist:
-            Contact(user=user, email=email).save()
-            imported += 1
+    for entry in entries:
+        name = entry.title.text
+        for e in entry.email:
+            email = e.address
+            total += 1
+            try:
+                Contact.objects.get(user=user, email=email)
+            except Contact.DoesNotExist:
+                Contact(user=user, name=name, email=email).save()
+                imported += 1
     return imported, total
