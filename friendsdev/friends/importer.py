@@ -5,6 +5,7 @@ from models import Contact
 import vobject
 import ybrowserauth
 import simplejson
+import gdata.contacts.service
 
 def import_vcards(stream, user):
     """
@@ -54,5 +55,37 @@ def import_yahoo(bbauth_token, user):
             Contact.objects.get(user=user, email=email)
         except Contact.DoesNotExist:
             Contact(user=user, name=name, email=email).save()
+            imported += 1
+    return imported, total
+
+
+def import_google(authsub_token, user):
+    """
+    Uses the given AuthSub token to retrieve Google Contacts and
+    import the entries with an email address into the contacts of the
+    given user.
+    
+    Returns a tuple of (number imported, total number of entries).
+    """
+
+    contacts_service = gdata.contacts.service.ContactsService()
+    contacts_service.auth_token = authsub_token
+    contacts_service.UpgradeToSessionToken()
+    emails = []
+    feed = contacts_service.GetContactsFeed()
+    emails.extend(sum([[email.address for email in entry.email] for entry in feed.entry], []))
+    next_link = feed.GetNextLink()
+    while next_link:
+        feed = contacts_service.GetContactsFeed(uri=next_link.href)
+        emails.extend(sum([[email.address for email in entry.email] for entry in feed.entry], []))
+        next_link = feed.GetNextLink()
+    total = 0
+    imported = 0
+    for email in emails: # @@@ how do we get name?
+        total += 1
+        try:
+            Contact.objects.get(user=user, email=email)
+        except Contact.DoesNotExist:
+            Contact(user=user, email=email).save()
             imported += 1
     return imported, total
