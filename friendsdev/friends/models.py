@@ -36,10 +36,14 @@ class Contact(models.Model):
     """
     
     # the user who created the contact
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, related_name="contacts")
+    
     name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField()
     added = models.DateField(default=datetime.date.today)
+    
+    # the user(s) this contact correspond to
+    users = models.ManyToManyField(User)
     
     def __unicode__(self):
         return "%s (%s's contact)" % (self.email, self.user)
@@ -189,5 +193,8 @@ def new_user(sender, instance):
             if join_invitation.status not in [5, 7]: # if not accepted or already marked as joined independently
                 join_invitation.status = 7
                 join_invitation.save()
-                # @@@ send notification
+                # notification will be covered below
+        for contact in Contact.objects.filter(email=instance.email):
+            contact.users.add(instance.user)
+            # @@@ send notification
 dispatcher.connect(new_user, signal=signals.post_save, sender=EmailAddress)
