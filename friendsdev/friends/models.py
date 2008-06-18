@@ -9,6 +9,9 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 
+from django.dispatch import dispatcher
+from django.db.models import signals
+
 # favour django-mailer but fall back to django.core.mail
 try:
     from mailer import send_mail
@@ -20,6 +23,9 @@ try:
 except ImportError:
     notification = None
 
+# @@@ this assumes email-confirmation is being used
+from emailconfirmation.models import EmailAddress
+
 from django.conf import settings
 
 
@@ -29,6 +35,7 @@ class Contact(models.Model):
     be a user.
     """
     
+    # the user who created the contact
     user = models.ForeignKey(User)
     name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField()
@@ -90,6 +97,7 @@ INVITE_STATUS = (
     ("4", "Expired"),
     ("5", "Accepted"),
     ("6", "Declined"),
+    ("7", "Joined Independently")
 )
 
 class JoinInvitationManager(models.Manager):
@@ -173,3 +181,13 @@ class FriendshipInvitation(models.Model):
             for user in friend_set_for(self.to_user) | friend_set_for(self.from_user):
                 if user != self.to_user and user != self.from_user:
                     notification.send([user], "friends_otherconnect", "%s and %s are now friends", [self.from_user, self.to_user])
+
+# @@@ this assumes email-confirmation is being used
+def new_user(sender, instance):
+    if instance.verified:
+        for join_invitation in JoinInvitation.objects.filter(contact__email=instance.email):
+            if join_invitation.status not in [5, 7]: # if not accepted or already marked as joined independently
+                join_invitation.status = 7
+                join_invitation.save()
+                # @@@ send notification
+dispatcher.connect(new_user, signal=signals.post_save, sender=EmailAddress)
