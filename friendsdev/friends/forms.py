@@ -23,11 +23,9 @@ class JoinRequestForm(forms.Form):
     message = forms.CharField(label="Message", required=False, widget=forms.Textarea(attrs = {'cols': '30', 'rows': '5'}))
     
     def clean_email(self):
-        self.existing_users = None
         # @@@ this assumes email-confirmation is being used
-        addresses = list(EmailAddress.objects.filter(verified=True, email=self.cleaned_data["email"]))
-        if len(addresses) > 0:
-            self.existing_users = [address.user for address in addresses]
+        self.existing_users = EmailAddress.objects.get_users_for(self.cleaned_data["email"])
+        if self.existing_users:
             raise forms.ValidationError(u"Someone with that email address is already here.")
         return self.cleaned_data["email"]
     
