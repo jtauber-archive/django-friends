@@ -1,0 +1,1 @@
+{{ new_user }} has joined and is now a friend.

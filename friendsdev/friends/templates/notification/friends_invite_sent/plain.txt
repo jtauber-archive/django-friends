@@ -1,0 +1,1 @@
+you have invited {{ user }} to add you as a friend.

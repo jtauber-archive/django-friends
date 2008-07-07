@@ -1,0 +1,1 @@
+{{ user }} has requested to add you as a friend.
