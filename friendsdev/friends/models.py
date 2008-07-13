@@ -153,7 +153,7 @@ class JoinInvitation(models.Model):
             notification.send([self.from_user], "join_accept", {"invitation": self, "new_user": new_user})
             for user in friend_set_for(new_user) | friend_set_for(self.from_user):
                 if user != new_user and user != self.from_user:
-                    notification.send([user], "friends_otherconnect", {"from_user": self.from_user, "to_user": new_user})
+                    notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": new_user})
     
     class Admin:
         list_display = ('id', 'from_user', 'contact', 'status')
@@ -184,7 +184,7 @@ class FriendshipInvitation(models.Model):
             notification.send([self.to_user], "friends_accept_sent", {"invitation": self})
             for user in friend_set_for(self.to_user) | friend_set_for(self.from_user):
                 if user != self.to_user and user != self.from_user:
-                    notification.send([user], "friends_otherconnect", {"from_user": self.from_user, "to_user": self.to_user})
+                    notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": self.to_user})
 
 # @@@ this assumes email-confirmation is being used
 def new_user(sender, instance):

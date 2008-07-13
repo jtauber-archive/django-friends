@@ -66,7 +66,7 @@ class InviteFriendForm(UserForm):
         invitation = FriendshipInvitation(from_user=self.user, to_user=to_user, message=message, status=2)
         invitation.save()
         if notification:
-            notification.send([to_user], "friends_invite", {"user": self.user})
-            notification.send([self.user], "friends_invite_sent", {"user": to_user})
+            notification.send([to_user], "friends_invite", {"invitation": invitation})
+            notification.send([self.user], "friends_invite_sent", {"invitation": invitation})
         self.user.message_set.create(message="Friendship requested with %s" % to_user.username) # @@@ make link like notification
         return invitation

@@ -1,1 +1,1 @@
-{{ invitation.to_user }} has accepted your friend request.
+{% load i18n %}{% blocktrans %}{{ invitation.to_user }} has accepted your friend request.{% endblocktrans %}

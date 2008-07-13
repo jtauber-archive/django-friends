@@ -1,1 +1,1 @@
-{{ from_user }} and {{ to_user }} are now friends.
+{% load i18n %}{% blocktrans %}{{ from_user }} and {{ to_user }} are now friends.{% endblocktrans %}
