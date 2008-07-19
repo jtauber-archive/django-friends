@@ -1,2 +1,2 @@
 {% load i18n captureas %}{% captureas from_user_url %}{% url profile_detail username=invitation.from_user.username %}{% endcaptureas %}{% captureas to_user_url %}{% url profile_detail username=to_user.username %}{% endcaptureas %}
-{% blocktrans %}<a href="{{ from_user_url }}">{{ invitation.from_user }}</a> and <a href="{{ to_user_url }}">{{ to_user }}</a> are now friends.{% endblocktrans %}
+{% blocktrans with invitation.from_user as invitation_from_user %}<a href="{{ from_user_url }}">{{ invitation_from_user }}</a> and <a href="{{ to_user_url }}">{{ to_user }}</a> are now friends.{% endblocktrans %}

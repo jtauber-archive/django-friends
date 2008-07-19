@@ -1,2 +1,2 @@
 {% load i18n captureas %}{% captureas user_url %}{% url profile_detail username=new_user.username %}{% endcaptureas %}
-{% blocktrans %}<a href="user_url">{{ new_user }} has joined and is now a friend.{% endblocktrans %}
+{% blocktrans %}<a href="{{ user_url }}">{{ new_user }} has joined and is now a friend.{% endblocktrans %}
