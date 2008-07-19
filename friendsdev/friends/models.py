@@ -47,9 +47,6 @@ class Contact(models.Model):
     
     def __unicode__(self):
         return "%s (%s's contact)" % (self.email, self.user)
-    
-    class Admin:
-        list_display = ('id', 'name', 'email', 'user', 'added')
 
 
 class FriendshipManager(models.Manager):
@@ -85,9 +82,6 @@ class Friendship(models.Model):
     
     class Meta:
         unique_together = (('to_user', 'from_user'),)
-    
-    class Admin:
-        list_display = ('id', 'from_user', 'to_user', 'added', )
 
 
 def friend_set_for(user):
@@ -154,10 +148,6 @@ class JoinInvitation(models.Model):
             for user in friend_set_for(new_user) | friend_set_for(self.from_user):
                 if user != new_user and user != self.from_user:
                     notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": new_user})
-    
-    class Admin:
-        list_display = ('id', 'from_user', 'contact', 'status')
-
 
 class FriendshipInvitation(models.Model):
     """
@@ -170,9 +160,6 @@ class FriendshipInvitation(models.Model):
     message = models.TextField()
     sent = models.DateField(default=datetime.date.today)
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
-    
-    class Admin:
-        list_display = ('id', 'from_user', 'to_user', 'sent', 'status', )
     
     def accept(self):
         friendship = Friendship(to_user=self.to_user, from_user=self.from_user)
