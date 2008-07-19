@@ -1,2 +1,2 @@
-{% load i18n captureas %}{% captureas user_url %}{% url profile_detail username=invitation.to_user.username %}{% endcaptureas %}
+{% load i18n captureas_tag %}{% captureas user_url %}{% url profile_detail username=invitation.to_user.username %}{% endcaptureas %}
 {% blocktrans with invitation.to_user as invitation_to_user %}you have invited <a href="{{ user_url }}">{{ invitation_to_user }}</a> to add you as a friend.{% endblocktrans %}

@@ -1,2 +1,2 @@
-{% load i18n captureas %}{% captureas user_url %}{% url profile_detail username=invitation.to_user.username %}{% endcaptureas %}
+{% load i18n captureas_tag %}{% captureas user_url %}{% url profile_detail username=invitation.to_user.username %}{% endcaptureas %}
 {% blocktrans with invitation.to_user as invitation_user %}{{ invitation_user }} has accepted your friend request.{% endblocktrans %}
