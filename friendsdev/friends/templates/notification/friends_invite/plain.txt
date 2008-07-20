@@ -1,1 +1,1 @@
-{% load i18n %}{% blocktrans %}{{ user }} has requested to add you as a friend.{% endblocktrans %}
+{% load i18n %}{% blocktrans with invitation.from_user as invitation_from_user %}{{ invitation_from_user }} has requested to add you as a friend.{% endblocktrans %}
