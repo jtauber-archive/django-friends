@@ -9,7 +9,6 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 
-from django.dispatch import dispatcher
 from django.db.models import signals
 
 # favour django-mailer but fall back to django.core.mail
@@ -174,7 +173,7 @@ class FriendshipInvitation(models.Model):
                     notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": self.to_user})
 
 # @@@ this assumes email-confirmation is being used
-def new_user(sender, instance):
+def new_user(sender, instance, **kwargs):
     if instance.verified:
         for join_invitation in JoinInvitation.objects.filter(contact__email=instance.email):
             if join_invitation.status not in [5, 7]: # if not accepted or already marked as joined independently
@@ -184,4 +183,4 @@ def new_user(sender, instance):
         for contact in Contact.objects.filter(email=instance.email):
             contact.users.add(instance.user)
             # @@@ send notification
-dispatcher.connect(new_user, signal=signals.post_save, sender=EmailAddress)
+signals.post_save.connect(new_user, sender=EmailAddress)

@@ -1,4 +1,3 @@
-from django.dispatch import dispatcher
 from django.db.models import signals
 
 from django.utils.translation import ugettext_noop as _
@@ -14,6 +13,6 @@ try:
         notification.create_notice_type("friends_otherconnect", _("Other Connection"), _("one of your friends has a new connection"), default=2)
         notification.create_notice_type("join_accept", _("Join Invitation Accepted"), _("an invitation you sent to join this site has been accepted"), default=2)
     
-    dispatcher.connect(create_notice_types, signal=signals.post_syncdb, sender=notification)
+    signals.post_syncdb.connect(create_notice_types, sender=notification)
 except ImportError:
     print "Skipping creation of NoticeTypes as notification app not found"
