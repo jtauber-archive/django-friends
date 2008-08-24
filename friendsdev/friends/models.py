@@ -161,16 +161,17 @@ class FriendshipInvitation(models.Model):
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
     
     def accept(self):
-        friendship = Friendship(to_user=self.to_user, from_user=self.from_user)
-        friendship.save()
-        self.status = 5
-        self.save()
-        if notification:
-            notification.send([self.from_user], "friends_accept", {"invitation": self})
-            notification.send([self.to_user], "friends_accept_sent", {"invitation": self})
-            for user in friend_set_for(self.to_user) | friend_set_for(self.from_user):
-                if user != self.to_user and user != self.from_user:
-                    notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": self.to_user})
+        if not Friendship.objects.are_friends(self.to_user, self.from_user):
+            friendship = Friendship(to_user=self.to_user, from_user=self.from_user)
+            friendship.save()
+            self.status = 5
+            self.save()
+            if notification:
+                notification.send([self.from_user], "friends_accept", {"invitation": self})
+                notification.send([self.to_user], "friends_accept_sent", {"invitation": self})
+                for user in friend_set_for(self.to_user) | friend_set_for(self.from_user):
+                    if user != self.to_user and user != self.from_user:
+                        notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": self.to_user})
 
 # @@@ this assumes email-confirmation is being used
 def new_user(sender, instance, **kwargs):
