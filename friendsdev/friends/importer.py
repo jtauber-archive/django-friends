@@ -50,12 +50,28 @@ def import_yahoo(bbauth_token, user):
     for contact in address_book["contacts"]:
         total += 1
         email = contact['fields'][0]['data']
-        name = contact['fields'][1]['first'] + contact['fields'][1]['last']
+        try:
+            first_name = contact['fields'][1]['first']
+        except (KeyError, IndexError):
+            first_name = None
+        try:
+            last_name = contact['fields'][1]['last']
+        except (KeyError, IndexError):
+            last_name = None
+        if first_name and last_name:
+            name = first_name + " " + last_name
+        elif first_name:
+            name = first_name
+        elif last_name:
+            name = last_name
+        else:
+            name = None
         try:
             Contact.objects.get(user=user, email=email)
         except Contact.DoesNotExist:
             Contact(user=user, name=name, email=email).save()
             imported += 1
+    
     return imported, total
 
 
