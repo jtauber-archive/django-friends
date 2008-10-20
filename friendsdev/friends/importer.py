@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from models import Contact
+from friends.models import Contact
 
 import vobject
 import ybrowserauth
