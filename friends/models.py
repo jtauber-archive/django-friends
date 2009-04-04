@@ -101,8 +101,8 @@ class JoinInvitationManager(models.Manager):
     
     def send_invitation(self, from_user, to_email, message):
         contact, created = Contact.objects.get_or_create(email=to_email, user=from_user)
-        salt = sha_constructor.new(str(random())).hexdigest()[:5]
-        confirmation_key = sha_constructor.new(salt + to_email).hexdigest()
+        salt = sha_constructor(str(random())).hexdigest()[:5]
+        confirmation_key = sha_constructor(salt + to_email).hexdigest()
         accept_url = u"http://%s%s" % (
             unicode(Site.objects.get_current()),
             reverse("friends_accept_join", args=(confirmation_key,)),
