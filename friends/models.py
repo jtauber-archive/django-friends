@@ -94,7 +94,8 @@ INVITE_STATUS = (
     ("4", "Expired"),
     ("5", "Accepted"),
     ("6", "Declined"),
-    ("7", "Joined Independently")
+    ("7", "Joined Independently"),
+    ("8", "Deleted")
 )
 
 class JoinInvitationManager(models.Manager):
@@ -187,3 +188,12 @@ def new_user(sender, instance, **kwargs):
             contact.users.add(instance.user)
             # @@@ send notification
 signals.post_save.connect(new_user, sender=EmailAddress)
+
+def delete_friendship(sender, instance, **kwargs):
+    friendship_invitations = FriendshipInvitation.objects.filter(to_user=instance.to_user, from_user=instance.from_user)
+    for friendship_invitation in friendship_invitations:
+        if friendship_invitation.status != 8:
+            friendship_invitation.status = 8
+            friendship_invitation.save()
+
+signals.pre_delete.connect(delete_friendship, sender=Friendship)
