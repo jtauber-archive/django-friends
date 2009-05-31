@@ -4,12 +4,12 @@ from django.contrib.auth.models import User
 
 from friends.models import *
 
-if "notification" in settings.INSTALLED_APPS
+if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
 else:
     notification = None
 
-if "emailconfirmation" in settings.INSTALLED_APPS
+if "emailconfirmation" in settings.INSTALLED_APPS:
     from emailconfirmation.models import EmailAddress
 else:
     EmailAddress = None
