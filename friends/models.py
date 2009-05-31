@@ -2,31 +2,29 @@ import datetime
 from random import random
 
 from django.db import models
-
 from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.utils.hashcompat import sha_constructor
-
 from django.db.models import signals
-
-# favour django-mailer but fall back to django.core.mail
-try:
-    from mailer import send_mail
-except ImportError:
-    from django.core.mail import send_mail
-
-try:
-    from notification import models as notification
-except ImportError:
-    notification = None
-
-# @@@ this assumes email-confirmation is being used
-from emailconfirmation.models import EmailAddress
-
 from django.conf import settings
 
+# favour django-mailer but fall back to django.core.mail
+if "mailer" in settings.INSTALLED_APPS
+    from mailer import send_mail
+else:
+    from django.core.mail import send_mail
+
+if "notification" in settings.INSTALLED_APPS
+    from notification import models as notification
+else:
+    notification = None
+
+if "emailconfirmation" in settings.INSTALLED_APPS
+    from emailconfirmation.models import EmailAddress
+else:
+    EmailAddress = None
 
 class Contact(models.Model):
     """
@@ -176,18 +174,20 @@ class FriendshipInvitation(models.Model):
                     if user != self.to_user and user != self.from_user:
                         notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": self.to_user})
 
-# @@@ this assumes email-confirmation is being used
-def new_user(sender, instance, **kwargs):
-    if instance.verified:
-        for join_invitation in JoinInvitation.objects.filter(contact__email=instance.email):
-            if join_invitation.status not in [5, 7]: # if not accepted or already marked as joined independently
-                join_invitation.status = 7
-                join_invitation.save()
-                # notification will be covered below
-        for contact in Contact.objects.filter(email=instance.email):
-            contact.users.add(instance.user)
-            # @@@ send notification
-signals.post_save.connect(new_user, sender=EmailAddress)
+if EmailAddress:
+    def new_user(sender, instance, **kwargs):
+        if instance.verified:
+            for join_invitation in JoinInvitation.objects.filter(contact__email=instance.email):
+                if join_invitation.status not in [5, 7]: # if not accepted or already marked as joined independently
+                    join_invitation.status = 7
+                    join_invitation.save()
+                    # notification will be covered below
+            for contact in Contact.objects.filter(email=instance.email):
+                contact.users.add(instance.user)
+                # @@@ send notification
+
+    # only if django-email-notification is installed
+    signals.post_save.connect(new_user, sender=EmailAddress)
 
 def delete_friendship(sender, instance, **kwargs):
     friendship_invitations = FriendshipInvitation.objects.filter(to_user=instance.to_user, from_user=instance.from_user)
