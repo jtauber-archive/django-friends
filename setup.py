@@ -17,10 +17,11 @@ setup(
         'Programming Language :: Python',
         'Framework :: Django',
     ],
-    include_package_data=True,
+    include_package_data = True,
     package_data = {
         'friends': [
-            'templates/notification/*/*',
+            'templates/notification/*/*.html',
+            'templates/notification/*/*.txt',
         ]
     },
     zip_safe=False,
