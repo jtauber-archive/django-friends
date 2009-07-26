@@ -176,6 +176,22 @@ class FriendshipInvitation(models.Model):
                     if user != self.to_user and user != self.from_user:
                         notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": self.to_user})
 
+    def decline(self):
+        if not Friendship.objects.are_friends(self.to_user, self.from_user):
+            self.status = 6
+            self.save()
+
+class FriendshipInvitationHistory(models.Model):
+    """
+    History for friendship invitations
+    """
+    
+    from_user = models.ForeignKey(User, related_name="invitations_from_history")
+    to_user = models.ForeignKey(User, related_name="invitations_to_history")
+    message = models.TextField()
+    sent = models.DateField(default=datetime.date.today)
+    status = models.CharField(max_length=1, choices=INVITE_STATUS)
+
 # @@@ this assumes email-confirmation is being used
 def new_user(sender, instance, **kwargs):
     if instance.verified:
@@ -197,3 +213,18 @@ def delete_friendship(sender, instance, **kwargs):
             friendship_invitation.save()
 
 signals.pre_delete.connect(delete_friendship, sender=Friendship)
+
+# moves existing friendship invitation from user to user to FriendshipInvitationHistory before saving new invitation
+def friendship_invitation(sender, instance, **kwargs):
+    friendship_invitations = FriendshipInvitation.objects.filter(to_user=instance.to_user, from_user=instance.from_user)
+    for friendship_invitation in friendship_invitations:
+        FriendshipInvitationHistory.objects.create(
+                from_user=friendship_invitation.from_user,
+                to_user=friendship_invitation.to_user,
+                message=friendship_invitation.message,
+                sent=friendship_invitation.sent,
+                status=friendship_invitation.status
+                )
+        friendship_invitation.delete()
+
+signals.pre_save.connect(friendship_invitation, sender=FriendshipInvitation)
