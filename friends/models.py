@@ -156,6 +156,10 @@ class JoinInvitation(models.Model):
                     friends.append(user)
             notification.send(friends, "friends_otherconnect", {"invitation": self, "to_user": new_user})
 
+class FriendshipInvitationManager(models.Manager):
+    def invitations(self, *args, **kwargs):
+        return self.filter(*args, **kwargs).exclude(status__in=["6", "8"])
+
 class FriendshipInvitation(models.Model):
     """
     A frienship invite is an invitation from one user to another to be
@@ -168,6 +172,8 @@ class FriendshipInvitation(models.Model):
     sent = models.DateField(default=datetime.date.today)
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
     
+    objects = FriendshipInvitationManager()
+
     def accept(self):
         if not Friendship.objects.are_friends(self.to_user, self.from_user):
             friendship = Friendship(to_user=self.to_user, from_user=self.from_user)
