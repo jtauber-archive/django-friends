@@ -66,7 +66,7 @@ class InviteFriendForm(UserForm):
     def save(self):
         to_user = User.objects.get(username=self.cleaned_data["to_user"])
         message = self.cleaned_data["message"]
-        invitation = FriendshipInvitation(from_user=self.user, to_user=to_user, message=message, status=2)
+        invitation = FriendshipInvitation(from_user=self.user, to_user=to_user, message=message, status="2")
         invitation.save()
         if notification:
             notification.send([to_user], "friends_invite", {"invitation": invitation})
