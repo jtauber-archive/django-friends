@@ -109,17 +109,22 @@ class JoinInvitationManager(models.Manager):
         contact, created = Contact.objects.get_or_create(email=to_email, user=from_user)
         salt = sha_constructor(str(random())).hexdigest()[:5]
         confirmation_key = sha_constructor(salt + to_email).hexdigest()
+        
         accept_url = u"http://%s%s" % (
             unicode(Site.objects.get_current()),
             reverse("friends_accept_join", args=(confirmation_key,)),
         )
         
-        subject = render_to_string("friends/join_invite_subject.txt")
-        email_message = render_to_string("friends/join_invite_message.txt", {
+        ctx = {
+            "SITE_NAME": settings.SITE_NAME,
+            "CONTACT_EMAIL": settings.CONTACT_EMAIL,
             "user": from_user,
             "message": message,
             "accept_url": accept_url,
-        })
+        }
+        
+        subject = render_to_string("friends/join_invite_subject.txt", ctx)
+        email_message = render_to_string("friends/join_invite_message.txt", ctx)
         
         send_mail(subject, email_message, settings.DEFAULT_FROM_EMAIL, [to_email])        
         return self.create(from_user=from_user, contact=contact, message=message, status="2", confirmation_key=confirmation_key)
