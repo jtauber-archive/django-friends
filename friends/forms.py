@@ -54,11 +54,11 @@ class InviteFriendForm(UserForm):
     
     def clean(self):
         to_user = User.objects.get(username=self.cleaned_data["to_user"])
-        previous_invitations_to = FriendshipInvitation.objects.filter(to_user=to_user, from_user=self.user).exclude(status=8).exclude(status=6)
+        previous_invitations_to = FriendshipInvitation.objects.invitations(to_user=to_user, from_user=self.user)
         if previous_invitations_to.count() > 0:
             raise forms.ValidationError(u"Already requested friendship with %s" % to_user.username)
         # check inverse
-        previous_invitations_from = FriendshipInvitation.objects.filter(to_user=self.user, from_user=to_user).exclude(status=8).exclude(status=6)
+        previous_invitations_from = FriendshipInvitation.objects.invitations(to_user=self.user, from_user=to_user)
         if previous_invitations_from.count() > 0:
             raise forms.ValidationError(u"%s has already requested friendship with you" % to_user.username)
         return self.cleaned_data
@@ -66,7 +66,7 @@ class InviteFriendForm(UserForm):
     def save(self):
         to_user = User.objects.get(username=self.cleaned_data["to_user"])
         message = self.cleaned_data["message"]
-        invitation = FriendshipInvitation(from_user=self.user, to_user=to_user, message=message, status=2)
+        invitation = FriendshipInvitation(from_user=self.user, to_user=to_user, message=message, status="2")
         invitation.save()
         if notification:
             notification.send([to_user], "friends_invite", {"invitation": invitation})
