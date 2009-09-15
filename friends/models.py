@@ -208,19 +208,6 @@ class FriendshipInvitationHistory(models.Model):
     sent = models.DateField(default=datetime.date.today)
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
 
-# @@@ this assumes email-confirmation is being used
-def new_user(sender, instance, **kwargs):
-    if instance.verified:
-        for join_invitation in JoinInvitation.objects.filter(contact__email=instance.email):
-            if join_invitation.status not in ["5", "7"]: # if not accepted or already marked as joined independently
-                join_invitation.status = "7"
-                join_invitation.save()
-                # notification will be covered below
-        for contact in Contact.objects.filter(email=instance.email):
-            contact.users.add(instance.user)
-            # @@@ send notification
-signals.post_save.connect(new_user, sender=EmailAddress)
-
 if EmailAddress:
     def new_user(sender, instance, **kwargs):
         if instance.verified:
