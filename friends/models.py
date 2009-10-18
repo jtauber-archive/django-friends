@@ -1,14 +1,16 @@
 import datetime
+
 from random import random
 
-from django.db import models
-from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
-from django.utils.hashcompat import sha_constructor
-from django.db.models import signals
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.db import models
+from django.db.models import signals
+from django.template.loader import render_to_string
+from django.utils.hashcompat import sha_constructor
+
+from django.contrib.sites.models import Site
+from django.contrib.auth.models import User
 
 # favour django-mailer but fall back to django.core.mail
 if "mailer" in settings.INSTALLED_APPS:
@@ -25,6 +27,7 @@ if "emailconfirmation" in settings.INSTALLED_APPS:
     from emailconfirmation.models import EmailAddress
 else:
     EmailAddress = None
+
 
 class Contact(models.Model):
     """
@@ -47,7 +50,7 @@ class Contact(models.Model):
 
 
 class FriendshipManager(models.Manager):
-
+    
     def friends_for_user(self, user):
         friends = []
         for friendship in self.filter(from_user=user).select_related(depth=1):
@@ -62,7 +65,7 @@ class FriendshipManager(models.Manager):
         if self.filter(from_user=user2, to_user=user1).count() > 0:
             return True
         return False
-
+    
     def remove(self, user1, user2):
         if self.filter(from_user=user1, to_user=user2):
             friendship = self.filter(from_user=user1, to_user=user2)
@@ -102,6 +105,7 @@ INVITE_STATUS = (
     ("7", "Joined Independently"),
     ("8", "Deleted")
 )
+
 
 class JoinInvitationManager(models.Manager):
     
@@ -161,9 +165,12 @@ class JoinInvitation(models.Model):
                     friends.append(user)
             notification.send(friends, "friends_otherconnect", {"invitation": self, "to_user": new_user})
 
+
 class FriendshipInvitationManager(models.Manager):
+    
     def invitations(self, *args, **kwargs):
         return self.filter(*args, **kwargs).exclude(status__in=["6", "8"])
+
 
 class FriendshipInvitation(models.Model):
     """
@@ -178,7 +185,7 @@ class FriendshipInvitation(models.Model):
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
     
     objects = FriendshipInvitationManager()
-
+    
     def accept(self):
         if not Friendship.objects.are_friends(self.to_user, self.from_user):
             friendship = Friendship(to_user=self.to_user, from_user=self.from_user)
@@ -191,11 +198,12 @@ class FriendshipInvitation(models.Model):
                 for user in friend_set_for(self.to_user) | friend_set_for(self.from_user):
                     if user != self.to_user and user != self.from_user:
                         notification.send([user], "friends_otherconnect", {"invitation": self, "to_user": self.to_user})
-
+    
     def decline(self):
         if not Friendship.objects.are_friends(self.to_user, self.from_user):
             self.status = "6"
             self.save()
+
 
 class FriendshipInvitationHistory(models.Model):
     """
@@ -208,6 +216,7 @@ class FriendshipInvitationHistory(models.Model):
     sent = models.DateField(default=datetime.date.today)
     status = models.CharField(max_length=1, choices=INVITE_STATUS)
 
+
 if EmailAddress:
     def new_user(sender, instance, **kwargs):
         if instance.verified:
@@ -219,7 +228,7 @@ if EmailAddress:
             for contact in Contact.objects.filter(email=instance.email):
                 contact.users.add(instance.user)
                 # @@@ send notification
-
+    
     # only if django-email-notification is installed
     signals.post_save.connect(new_user, sender=EmailAddress)
 
@@ -230,7 +239,9 @@ def delete_friendship(sender, instance, **kwargs):
             friendship_invitation.status = "8"
             friendship_invitation.save()
 
+
 signals.pre_delete.connect(delete_friendship, sender=Friendship)
+
 
 # moves existing friendship invitation from user to user to FriendshipInvitationHistory before saving new invitation
 def friendship_invitation(sender, instance, **kwargs):
@@ -244,5 +255,6 @@ def friendship_invitation(sender, instance, **kwargs):
                 status=friendship_invitation.status
                 )
         friendship_invitation.delete()
+
 
 signals.pre_save.connect(friendship_invitation, sender=FriendshipInvitation)
