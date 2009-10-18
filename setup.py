@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-friends',
-    version='0.1.4',
+    version='0.1.5',
     description='friendship, contact and invitation management for the Django web framework',
     author='James Tauber',
     author_email='jtauber@jtauber.com',
