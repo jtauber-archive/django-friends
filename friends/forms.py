@@ -1,5 +1,6 @@
 from django import forms
 from django.conf import settings
+
 from django.contrib.auth.models import User
 
 from friends.models import *
@@ -14,30 +15,33 @@ if "emailconfirmation" in settings.INSTALLED_APPS:
 else:
     EmailAddress = None
 
+
 class UserForm(forms.Form):
     
     def __init__(self, user=None, *args, **kwargs):
         self.user = user
         super(UserForm, self).__init__(*args, **kwargs)
 
+
 if EmailAddress:
     class JoinRequestForm(forms.Form):
-    
+        
         email = forms.EmailField(label="Email", required=True, widget=forms.TextInput(attrs={'size':'30'}))
         message = forms.CharField(label="Message", required=False, widget=forms.Textarea(attrs = {'cols': '30', 'rows': '5'}))
-    
+        
         def clean_email(self):
             # @@@ this assumes email-confirmation is being used
             self.existing_users = EmailAddress.objects.get_users_for(self.cleaned_data["email"])
             if self.existing_users:
                 raise forms.ValidationError(u"Someone with that email address is already here.")
             return self.cleaned_data["email"]
-    
+        
         def save(self, user):
             join_request = JoinInvitation.objects.send_invitation(user, self.cleaned_data["email"], self.cleaned_data["message"])
             user.message_set.create(message="Invitation to join sent to %s" % join_request.contact.email)
             return join_request
-    
+
+
 class InviteFriendForm(UserForm):
     
     to_user = forms.CharField(widget=forms.HiddenInput)
