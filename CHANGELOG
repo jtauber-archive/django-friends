@@ -1,0 +1,5 @@
+0.1.5
+-----
+
+ * fixed dependancy on django-email-confirmation which crept in by accident.
+ * doesn't directly depend on simplejson for in contact importer
